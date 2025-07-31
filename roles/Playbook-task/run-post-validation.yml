@@ -1,0 +1,57 @@
+---
+
+    - name: Run Post Validation
+      ios_command:
+        authorize: yes
+        timeout: 20
+        provider: "{{ cli_provider }}"
+        commands:
+          - sh clock
+          - show version | in Processor
+          - show ip int brief
+          - sh ip bgp
+          - sh ip bgp sum
+          - sh cdp nei
+          - sh ip route
+          - sh ip ospf nei
+
+
+      register: print_output
+
+
+    - name: Save Post Validation to file (quiet copy)
+      copy:
+        content: "{{ print_output.stdout | join('\n') }}"
+        dest: ./files/POSTPULLS/{{ inventory_hostname }}.txt
+
+    - name: Copy config
+      ios_command:
+        authorize: yes
+        timeout: 20
+        provider: "{{ cli_provider }}"
+        commands:
+          - sh run
+
+      register: print_output_show_run_post
+    
+    - name: Save post Validation to file (quiet copy)
+      copy:
+        content: "{{ print_output_show_run_post.stdout | join('\n') }}"
+        dest: ./files/POSTPULLS/runningconfig/{{ inventory_hostname }}.txt
+
+    - name: Diff pre vs post running config
+      ansible.builtin.command: diff ./files/PREPULLS/runningconfig/{{ inventory_hostname }}.txt ./files/POSTPULLS/runningconfig/{{ inventory_hostname }}.txt
+      register: config_diff
+      ignore_errors: true
+
+    - name: Show config diff
+      debug:
+        var: config_diff.stdout_lines
+      when: config_diff is defined and config_diff.stdout_lines is defined
+
+
+    - name: Save config diff
+      copy:
+        content: "{{ config_diff.stdout }}"
+        dest: ./files/DIFFS/{{ inventory_hostname }}_diff.txt
+      when: config_diff is defined and config_diff.stdout is defined and config_diff.stdout != ""

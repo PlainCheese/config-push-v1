@@ -1,0 +1,14 @@
+---
+
+    - name: run validation on device and print to terminal 
+      ios_command:
+        authorize: yes
+        timeout: 20
+        provider: "{{ cli_provider }}"
+        commands:
+          - sh vlan brief
+          - sh ip int b | in 500
+
+      register: print_output
+
+    - debug: var=print_output

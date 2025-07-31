@@ -1,0 +1,38 @@
+---
+- name: Config push and validations
+  hosts: all
+  gather_facts: false
+  connection: local
+
+  vars_prompt:
+    - name: cli_username
+      prompt: "Enter the username for CLI access"
+      private: no 
+    - name: cli_password
+      prompt: "Enter the password for CLI access"
+      private: yes
+    - name: config_file
+      prompt: "Enter your config file name"
+      private: no
+    - name:
+
+  vars:
+    cli_provider:
+      host: "{{ inventory_hostname }}"
+      username: "{{ cli_username }}"
+      password: "{{ cli_password }}"
+      auth_pass: "{{ cli_password }}"
+
+  task:
+
+    - name: Loop Playbook Steps
+      ansible.builtin.include_role:
+        name: Playbook-task
+        task_from: "{{item}}"
+        loop:
+          - run-pre-validation
+          - save-pre-validation
+          - configure-devices
+          - save-changes-to-file
+          - run-change-validation
+          - run-post-validation

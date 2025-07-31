@@ -1,0 +1,17 @@
+---
+
+    - name: Configure the devices with source file
+      ios_config:
+        timeout: 40
+        authorize: yes
+        provider: "{{ cli_provider }}"
+        src: ./ConfigFiles/{{config_file}}
+
+      register: print_output_change
+
+    -  debug: var=print_output_change.commands
+
+    - name: Save config changes to file
+      copy:
+        content: "{{ print_output_change.commands | join('\n') }}"
+        dest: ./files/changes/{{ inventory_hostname }}.txt

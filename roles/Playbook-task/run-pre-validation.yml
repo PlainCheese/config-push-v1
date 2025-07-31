@@ -1,0 +1,40 @@
+---
+
+    - name: Run Pre validation
+      ios_command:
+        authorize: yes
+        timeout: 20
+        provider: "{{ cli_provider }}"
+        commands:
+          - sh clock
+          - show version | in Processor
+          - show ip int brief
+          - sh ip bgp
+          - sh ip bgp sum
+          - sh cdp nei
+          - sh ip route
+          - sh ip ospf nei
+
+
+      register: print_output
+
+
+    - name: Save Pre Validation to file (quiet copy)
+      copy:
+        content: "{{ print_output.stdout | join('\n') }}"
+        dest: ./files/PREPULLS/{{ inventory_hostname }}.txt
+
+    - name: Copy config
+      ios_command:
+        authorize: yes
+        timeout: 20
+        provider: "{{ cli_provider }}"
+        commands:
+          - sh run
+
+      register: print_output_show_run_pre
+    
+    - name: Save Pre Validation to file (quiet copy)
+      copy:
+        content: "{{ print_output_show_run_pre.stdout | join('\n') }}"
+        dest: ./files/PREPULLS/runningconfig/{{ inventory_hostname }}.txt
